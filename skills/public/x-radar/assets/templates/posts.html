@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ category_name }} - X Radar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header .back-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 1.1em;
+        }
+
+        .post-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .post-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .post-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .post-header .author {
+            font-weight: bold;
+            color: #333;
+            margin-right: 10px;
+        }
+
+        .post-header .time {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .post-content {
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .post-stats {
+            display: flex;
+            gap: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stat-item .icon {
+            font-size: 1.1em;
+        }
+
+        .stat-item .value {
+            font-weight: 500;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state .emoji {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .post-stats {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" class="back-link">← 返回首页</a>
+            <h1>{{ category_name }}</h1>
+        </div>
+
+        {% if posts %}
+        <div class="post-list">
+            {% for post in posts %}
+            <div class="post-card" onclick="window.location.href='/post/{{ post.id }}'">
+                <div class="post-header">
+                    <span class="author">@{{ post.author_username }}</span>
+                    <span class="time">{{ post.created_at }}</span>
+                </div>
+                <div class="post-content">{{ post.text }}</div>
+                <div class="post-stats">
+                    <div class="stat-item">
+                        <span class="icon">👁️</span>
+                        <span class="value">{{ post.metrics_impressions }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="icon">❤️</span>
+                        <span class="value">{{ post.metrics_likes }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="icon">🔄</span>
+                        <span class="value">{{ post.metrics_retweets }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="icon">💬</span>
+                        <span class="value">{{ post.metrics_replies }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="emoji">📭</div>
+            <p>暂无帖子数据</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

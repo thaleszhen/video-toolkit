@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demand Radar - 需求挖掘平台</title>
+    <style>
+        :root {
+            /* Dark theme (default) */
+            --bg-gradient-1: #0f0f1e;
+            --bg-gradient-2: #1a1a2e;
+            --bg-gradient-3: #0d1117;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #eee;
+            --text-secondary: #888;
+            --text-tertiary: #666;
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --input-hover: rgba(255, 255, 255, 0.1);
+            --btn-bg: linear-gradient(135deg, #4a6cf7, #3a5bd7);
+            --btn-hover: linear-gradient(135deg, #3a5bd7, #2a4ac7);
+            --shadow-color: rgba(0, 0, 0, 0.3);
+        }
+
+        .light-theme {
+            /* Light theme */
+            --bg-gradient-1: #f0f4f8;
+            --bg-gradient-2: #e8f0fe;
+            --bg-gradient-3: #f5f7fa;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --text-primary: #1a1a2e;
+            --text-secondary: #666;
+            --text-tertiary: #888;
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --input-border: rgba(0, 0, 0, 0.15);
+            --input-hover: rgba(0, 0, 0, 0.2);
+            --btn-bg: linear-gradient(135deg, #4a6cf7, #3a5bd7);
+            --btn-hover: linear-gradient(135deg, #3a5bd7, #2a4ac7);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 50%, var(--bg-gradient-3) 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: background 0.5s ease, color 0.5s ease;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header-controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .control-btn {
+            padding: 8px 12px;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: var(--text-primary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: var(--input-hover);
+        }
+
+        header {
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #4a6cf7, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        select, button {
+            padding: 10px 16px;
+            border: 1px solid var(--input-border);
+            border-radius: 12px;
+            background: var(--input-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: var(--text-primary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        select:hover, button:hover {
+            background: var(--input-hover);
+        }
+
+        button {
+            background: var(--btn-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        button:hover {
+            background: var(--btn-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 108, 247, 0.3);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            background: var(--card-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px var(--shadow-color);
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .blue-text { color: #4a6cf7; text-shadow: 0 0 20px rgba(74, 108, 247, 0.5); }
+        .green-text { color: #4ecdc4; text-shadow: 0 0 20px rgba(78, 205, 196, 0.5); }
+        .orange-text { color: #f97316; text-shadow: 0 0 20px rgba(249, 115, 22, 0.5); }
+
+        .demands-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .demand-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .demand-card:hover {
+            background: var(--card-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px var(--shadow-color);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+            border: 1px solid var(--card-border);
+        }
+
+        .tag-hn {
+            background: rgba(74, 108, 247, 0.2);
+            border-color: rgba(74, 108, 247, 0.3);
+            color: #4a6cf7;
+        }
+
+        .tag-reddit {
+            background: rgba(255, 69, 0, 0.2);
+            border-color: rgba(255, 69, 0, 0.3);
+            color: #ff4500;
+        }
+
+        .tag-tool {
+            background: var(--input-bg);
+            border-color: var(--card-border);
+            color: var(--text-secondary);
+        }
+
+        .tag-question {
+            background: var(--input-bg);
+            border-color: var(--card-border);
+            color: var(--text-secondary);
+        }
+
+        .tag-showcase {
+            background: var(--input-bg);
+            border-color: var(--card-border);
+            color: var(--text-secondary);
+        }
+
+        .scores {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+        }
+
+        .score-high { color: #4ecdc4; text-shadow: 0 0 10px rgba(78, 205, 196, 0.5); }
+        .score-medium { color: #fcd34d; text-shadow: 0 0 10px rgba(252, 211, 77, 0.5); }
+        .score-low { color: var(--text-secondary); }
+
+        .demand-title {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .demand-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .labels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .label {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            border: 1px solid var(--card-border);
+        }
+
+        .label-pain {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.25);
+            color: #ef4444;
+        }
+
+        .label-tech {
+            background: rgba(74, 108, 247, 0.15);
+            border-color: rgba(74, 108, 247, 0.25);
+            color: #4a6cf7;
+        }
+
+        .label-purchase {
+            background: rgba(78, 205, 196, 0.15);
+            border-color: rgba(78, 205, 196, 0.25);
+            color: #4ecdc4;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .link {
+            color: #4a6cf7;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .link:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--card-border);
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        @media (max-width: 600px) {
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-controls">
+            <button class="control-btn" id="langBtn">🌐 EN/中</button>
+            <button class="control-btn" id="themeBtn">🌙</button>
+        </div>
+
+        <header>
+            <h1 id="title">🔍 Demand Radar</h1>
+            <p class="subtitle" id="subtitle">从社交媒体挖掘用户需求，发现变现机会</p>
+            <div class="filters">
+                <select id="platformFilter">
+                    <option value="all" data-zh="所有平台" data-en="All Platforms">所有平台</option>
+                    <option value="hn" data-zh="Hacker News" data-en="Hacker News">Hacker News</option>
+                    <option value="reddit" data-zh="Reddit" data-en="Reddit">Reddit</option>
+                </select>
+                <select id="categoryFilter">
+                    <option value="all" data-zh="所有分类" data-en="All Categories">所有分类</option>
+                    <option value="tool" data-zh="工具" data-en="Tools">工具</option>
+                    <option value="question" data-zh="问答" data-en="Questions">问答</option>
+                    <option value="showcase" data-zh="展示" data-en="Showcase">展示</option>
+                </select>
+                <button id="refreshBtn">刷新</button>
+            </div>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value blue-text" id="totalDemands">0</div>
+                <div class="stat-label" id="statTotal">总需求</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value green-text" id="highScoreDemands">0</div>
+                <div class="stat-label" id="statHighScore">高评分需求</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value orange-text" id="todayNew">0</div>
+                <div class="stat-label" id="statNew">今日新增</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value orange-text" id="avgScore">0.0</div>
+                <div class="stat-label" id="statAvg">平均评分</div>
+            </div>
+        </div>
+
+        <div class="demands-list" id="demandsList">
+            <div class="loading">
+                <div style="font-size: 40px; margin-bottom: 15px;">📊</div>
+                <p id="loadingText">正在加载数据...</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>Demand Radar v0.1.0 | MVP Demo</p>
+            <p style="margin-top: 8px;" id="dataSource">数据来源: Hacker News (模拟数据)</p>
+        </footer>
+    </div>
+
+    <script>
+        // Language translations
+        const i18n = {
+            zh: {
+                title: '🔍 Demand Radar',
+                subtitle: '从社交媒体挖掘用户需求，发现变现机会',
+                allPlatforms: '所有平台',
+                allCategories: '所有分类',
+                tools: '工具',
+                questions: '问答',
+                showcase: '展示',
+                refresh: '刷新',
+                statTotal: '总需求',
+                statHighScore: '高评分需求',
+                statNew: '今日新增',
+                statAvg: '平均评分',
+                loading: '正在加载数据...',
+                empty: '没有找到匹配的需求',
+                viewOriginal: '查看原文',
+                dataSource: '数据来源: Hacker News (模拟数据)',
+                painPoint: '痛点',
+                confidence: '置信度',
+                score: '评分'
+            },
+            en: {
+                title: '🔍 Demand Radar',
+                subtitle: 'Discover user needs from social media and find monetization opportunities',
+                allPlatforms: 'All Platforms',
+                allCategories: 'All Categories',
+                tools: 'Tools',
+                questions: 'Questions',
+                showcase: 'Showcase',
+                refresh: 'Refresh',
+                statTotal: 'Total Demands',
+                statHighScore: 'High Score',
+                statNew: 'New Today',
+                statAvg: 'Avg Score',
+                loading: 'Loading...',
+                empty: 'No matching demands found',
+                viewOriginal: 'View Original',
+                dataSource: 'Data Source: Hacker News (Mock Data)',
+                painPoint: 'Pain',
+                confidence: 'Confidence',
+                score: 'Score'
+            }
+        };
+
+        // Pain point keyword translations
+        const painPointTranslations = {
+            zh: {
+                'why': '为什么',
+                'expensive': '昂贵',
+                'limited': '有限',
+                'find': '查找',
+                'contact': '联系',
+                'bottleneck': '瓶颈',
+                'growing': '增长',
+                'need': '需要',
+                'takes time': '耗时',
+                'hard to find': '难找',
+                'overkill': '过度'
+            },
+            en: {
+                'why': 'why',
+                'expensive': 'expensive',
+                'limited': 'limited',
+                'find': 'find',
+                'contact': 'contact',
+                'bottleneck': 'bottleneck',
+                'growing': 'growing',
+                'need': 'need',
+                'takes time': 'takes time',
+                'hard to find': 'hard to find',
+                'overkill': 'overkill'
+            }
+        };
+
+        // Mock data with multilingual support
+        const mockDemands = [
+            {
+                id: 1,
+                title: {
+                    zh: "提问 HN：为什么我们不能直接生产更多内存？",
+                    en: "Ask HN: Why can't we just make more RAM?"
+                },
+                description: {
+                    zh: "我想了很久这个问题。随着制造业的进步，为什么内存仍然如此昂贵和有限？",
+                    en: "I've been wondering about this for a while. With all the advances in manufacturing, why is RAM still so expensive and limited?"
+                },
+                category: "question",
+                platform: "hn",
+                score: 0.49,
+                confidence: 0.90,
+                pain_points: ["why", "expensive", "limited"],
+                tech_keywords: ["ram", "manufacturing"],
+                author: "curious_dev",
+                source_url: "https://news.ycombinator.com/item?id=12345"
+            },
+            {
+                id: 2,
+                title: {
+                    zh: "展示 HN：求职者免费邮箱查找工具",
+                    en: "Show HN: Free email finder for job seekers"
+                },
+                description: {
+                    zh: "构建了一个可以直接查找和联系招聘人员的工具。无需注册，完全免费。",
+                    en: "Built a tool to find and contact recruiters directly. No signup required, completely free."
+                },
+                category: "tool",
+                platform: "hn",
+                score: 0.09,
+                confidence: 0.85,
+                pain_points: ["find", "contact"],
+                tech_keywords: ["tool", "email", "recruiters"],
+                author: "jobseeker2024",
+                source_url: "https://news.ycombinator.com/item?id=12346"
+            },
+            {
+                id: 3,
+                title: {
+                    zh: "寻找 Excel 的 SaaS 替代方案用于财务建模",
+                    en: "Looking for a SaaS alternative to Excel for financial modeling"
+                },
+                description: {
+                    zh: "我们的团队在壮大，Excel 成为了瓶颈。需要基于网络的实时协作解决方案。预算：500美元/月。",
+                    en: "Our team is growing and Excel is becoming a bottleneck. Need something web-based with real-time collaboration. Budget: $500/month."
+                },
+                category: "tool",
+                platform: "hn",
+                score: 0.42,
+                confidence: 0.92,
+                pain_points: ["bottleneck", "growing"],
+                purchase_signals: ["budget", "looking for"],
+                tech_keywords: ["saas", "excel", "web-based", "financial modeling"],
+                author: "startup_cfo",
+                source_url: "https://news.ycombinator.com/item?id=12347"
+            },
+            {
+                id: 4,
+                title: {
+                    zh: "我需要一个按发件人自动整理邮件的工具",
+                    en: "I need a tool to automatically organize my emails by sender"
+                },
+                description: {
+                    zh: "每天我收到数百封邮件，整理需要2小时。我愿意为能学习我偏好的解决方案付费。",
+                    en: "Every day I receive hundreds of emails and it takes me 2 hours to sort them. I'm willing to pay for a solution that can learn my preferences."
+                },
+                category: "tool",
+                platform: "hn",
+                score: 0.35,
+                confidence: 0.88,
+                pain_points: ["need", "takes time", "hundreds of emails"],
+                purchase_signals: ["willing to pay"],
+                tech_keywords: ["tool", "automatically", "organize", "emails"],
+                author: "busy_manager",
+                source_url: "https://news.ycombinator.com/item?id=12348"
+            },
+            {
+                id: 5,
+                title: {
+                    zh: "为什么为小型项目找到好的 CI/CD 管道这么难？",
+                    en: "Why is it so hard to find a good CI/CD pipeline for small projects?"
+                },
+                description: {
+                    zh: "我试过 GitHub Actions、GitLab CI 和其他。对于简单的个人项目来说都太复杂了。只是需要能用的东西。",
+                    en: "I've tried GitHub Actions, GitLab CI, and others. They all seem overkill for a simple personal project. Just need something that works."
+                },
+                category: "question",
+                platform: "hn",
+                score: 0.28,
+                confidence: 0.75,
+                pain_points: ["hard to find", "overkill"],
+                tech_keywords: ["ci/cd", "github actions", "gitlab"],
+                author: "indie_hacker",
+                source_url: "https://news.ycombinator.com/item?id=12349"
+            }
+        ];
+
+        // Theme and language state
+        let currentLang = 'zh';
+        let currentTheme = 'dark';
+        let isAutoTheme = true;
+
+        // Initialize theme based on system time
+        function initTheme() {
+            const hour = new Date().getHours();
+            const isDayTime = hour >= 6 && hour < 18;
+            setTheme(isDayTime ? 'light' : 'dark');
+        }
+
+        function setTheme(theme) {
+            currentTheme = theme;
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+                document.getElementById('themeBtn').textContent = '☀️';
+            } else {
+                document.body.classList.remove('light-theme');
+                document.getElementById('themeBtn').textContent = '🌙';
+            }
+        }
+
+        function toggleTheme() {
+            isAutoTheme = false;
+            setTheme(currentTheme === 'light' ? 'dark' : 'light');
+        }
+
+        // Language functions
+        function setLanguage(lang) {
+            currentLang = lang;
+            const t = i18n[lang];
+
+            // Update static text
+            document.getElementById('title').textContent = t.title;
+            document.getElementById('subtitle').textContent = t.subtitle;
+            document.getElementById('statTotal').textContent = t.statTotal;
+            document.getElementById('statHighScore').textContent = t.statHighScore;
+            document.getElementById('statNew').textContent = t.statNew;
+            document.getElementById('statAvg').textContent = t.statAvg;
+            document.getElementById('loadingText').textContent = t.loading;
+            document.getElementById('dataSource').textContent = t.dataSource;
+            document.getElementById('refreshBtn').textContent = t.refresh;
+            document.getElementById('langBtn').textContent = lang === 'zh' ? '🌐 EN/中' : '🌐 中文/EN';
+
+            // Update select options
+            document.querySelectorAll('#platformFilter option').forEach(opt => {
+                opt.textContent = opt.getAttribute(`data-${lang}`);
+            });
+            document.querySelectorAll('#categoryFilter option').forEach(opt => {
+                opt.textContent = opt.getAttribute(`data-${lang}`);
+            });
+
+            // Re-render demands with translated content
+            filterDemands();
+        }
+
+        function toggleLanguage() {
+            setLanguage(currentLang === 'zh' ? 'en' : 'zh');
+        }
+
+        // Render functions
+        function renderDemands(demands) {
+            const container = document.getElementById('demandsList');
+            container.innerHTML = '';
+
+            const t = i18n[currentLang];
+
+            if (demands.length === 0) {
+                container.innerHTML = `
+                    <div class="empty">
+                        <div style="font-size: 40px; margin-bottom: 10px;">🔍</div>
+                        <p>${t.empty}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            demands.forEach(demand => {
+                const scoreClass = demand.score >= 0.3 ? 'score-high' :
+                                  demand.score >= 0.1 ? 'score-medium' : 'score-low';
+
+                // Get localized title and description
+                const localizedTitle = typeof demand.title === 'object' ? demand.title[currentLang] : demand.title;
+                const localizedDesc = typeof demand.description === 'object' ? demand.description[currentLang] : demand.description;
+
+                // Get translated pain points
+                const translatedPainPoints = demand.pain_points.map(p => painPointTranslations[currentLang][p] || p);
+
+                const card = document.createElement('div');
+                card.className = 'demand-card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="tags">
+                            <span class="tag tag-${demand.platform}">${demand.platform.toUpperCase()}</span>
+                            <span class="tag tag-${demand.category}">${demand.category}</span>
+                        </div>
+                        <div class="scores">
+                            <span class="${scoreClass}">${t.score}: ${demand.score.toFixed(2)}</span>
+                            <span style="color: var(--text-secondary);">${t.confidence}: ${demand.confidence.toFixed(2)}</span>
+                        </div>
+                    </div>
+                    <h3 class="demand-title">${localizedTitle}</h3>
+                    <p class="demand-desc">${localizedDesc}</p>
+                    <div class="labels">
+                        ${translatedPainPoints.map(p => `<span class="label label-pain">${t.painPoint}: ${p}</span>`).join('')}
+                        ${demand.tech_keywords.map(k => `<span class="label label-tech">${k}</span>`).join('')}
+                        ${demand.purchase_signals ? demand.purchase_signals.map(s => `<span class="label label-purchase">💰 ${s}</span>`).join('') : ''}
+                    </div>
+                    <div class="card-footer">
+                        <span>@${demand.author}</span>
+                        <a href="${demand.source_url}" target="_blank" class="link">${t.viewOriginal} →</a>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateStats(demands) {
+            const total = demands.length;
+            const highScore = demands.filter(d => d.score >= 0.3).length;
+            const avgScore = total > 0 ? demands.reduce((sum, d) => sum + d.score, 0) / total : 0;
+
+            document.getElementById('totalDemands').textContent = total;
+            document.getElementById('highScoreDemands').textContent = highScore;
+            document.getElementById('todayNew').textContent = Math.floor(total * 0.2);
+            document.getElementById('avgScore').textContent = avgScore.toFixed(2);
+        }
+
+        function filterDemands() {
+            const platform = document.getElementById('platformFilter').value;
+            const category = document.getElementById('categoryFilter').value;
+
+            let filtered = [...mockDemands];
+
+            if (platform !== 'all') {
+                filtered = filtered.filter(d => d.platform === platform);
+            }
+
+            if (category !== 'all') {
+                filtered = filtered.filter(d => d.category === category);
+            }
+
+            renderDemands(filtered);
+            updateStats(filtered);
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            setLanguage('zh');
+
+            document.getElementById('platformFilter').addEventListener('change', filterDemands);
+            document.getElementById('categoryFilter').addEventListener('change', filterDemands);
+            document.getElementById('refreshBtn').addEventListener('click', () => {
+                const t = i18n[currentLang];
+                const container = document.getElementById('demandsList');
+                container.innerHTML = `
+                    <div class="loading">
+                        <div style="font-size: 40px; margin-bottom: 15px;">⏳</div>
+                        <p>${t.loading}</p>
+                    </div>
+                `;
+                setTimeout(() => {
+                    filterDemands();
+                }, 500);
+            });
+            document.getElementById('langBtn').addEventListener('click', toggleLanguage);
+            document.getElementById('themeBtn').addEventListener('click', toggleTheme);
+        });
+    </script>
+</body>
+</html>

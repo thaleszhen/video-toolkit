@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>帖子详情 - X Radar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .back-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 1.1em;
+        }
+
+        .post-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .post-header .author {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #333;
+            margin-right: 10px;
+        }
+
+        .post-header .time {
+            color: #999;
+        }
+
+        .post-content {
+            color: #333;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 1.1em;
+        }
+
+        .post-stats {
+            display: flex;
+            gap: 25px;
+            color: #666;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-item .icon {
+            font-size: 1.3em;
+        }
+
+        .stat-item .value {
+            font-weight: 500;
+        }
+
+        .comments-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .comments-section h2 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .comment-card {
+            padding: 15px;
+            border-left: 3px solid #667eea;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .comment-header .author {
+            font-weight: bold;
+            color: #333;
+            margin-right: 10px;
+        }
+
+        .comment-header .time {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .comment-content {
+            color: #555;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .empty-comments {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        @media (max-width: 768px) {
+            .post-stats {
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+            .comments-section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/posts/{{ post.category }}" class="back-link">← 返回列表</a>
+        </div>
+
+        <div class="post-card">
+            <div class="post-header">
+                <span class="author">@{{ post.author_username }}</span>
+                <span class="time">{{ post.created_at }}</span>
+            </div>
+            <div class="post-content">{{ post.text }}</div>
+            <div class="post-stats">
+                <div class="stat-item">
+                    <span class="icon">👁️</span>
+                    <span class="value">{{ post.metrics_impressions }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="icon">❤️</span>
+                    <span class="value">{{ post.metrics_likes }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="icon">🔄</span>
+                    <span class="value">{{ post.metrics_retweets }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="icon">💬</span>
+                    <span class="value">{{ post.metrics_replies }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="comments-section">
+            <h2>💬 评论 ({{ comments|length }})</h2>
+
+            {% if comments %}
+            <div class="comments-list">
+                {% for comment in comments %}
+                <div class="comment-card">
+                    <div class="comment-header">
+                        <span class="author">@{{ comment.author_username }}</span>
+                        <span class="time">{{ comment.created_at }}</span>
+                    </div>
+                    <div class="comment-content">{{ comment.text }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-comments">
+                <p>暂无评论</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

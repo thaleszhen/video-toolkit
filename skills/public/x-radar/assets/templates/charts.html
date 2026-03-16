@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据分析 - X Radar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header .back-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 1.1em;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .chart-card h3 {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 400px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-card {
+                padding: 15px;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" class="back-link">← 返回首页</a>
+            <h1>📊 数据分析</h1>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>帖子分类分布</h3>
+                <div class="chart-container">
+                    {{ pie_chart|safe }}
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>热门帖子浏览量 Top 20</h3>
+                <div class="chart-container">
+                    {{ bar_chart|safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

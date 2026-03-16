@@ -1,0 +1,33 @@
+{
+  "name": "video-toolkit",
+  "version": "1.0.0",
+  "description": "AI 原生视频处理工具箱",
+  "main": "dist/index.js",
+  "bin": {
+    "video-toolkit": "./dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/cli/index.ts",
+    "test": "jest",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "chalk": "^5.3.0",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/fluent-ffmpeg": "^2.1.24",
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.11",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

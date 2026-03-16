@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X Radar - Twitter 数据雷达</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .category-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            border-left: 5px solid;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .category-card.trending {
+            border-left-color: #ff6b6b;
+        }
+
+        .category-card.need {
+            border-left-color: #4ecdc4;
+        }
+
+        .category-card.product {
+            border-left-color: #45b7d1;
+        }
+
+        .category-card.complain {
+            border-left-color: #96ceb4;
+        }
+
+        .category-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .category-card .count {
+            font-size: 3em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .category-card .link {
+            color: #667eea;
+            text-decoration: none;
+            margin-top: 15px;
+            display: inline-block;
+            font-weight: 500;
+        }
+
+        .category-card .link:hover {
+            text-decoration: underline;
+        }
+
+        .last-update {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .stat-card .value {
+                font-size: 2em;
+            }
+
+            .category-card .count {
+                font-size: 2.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📡 X Radar</h1>
+            <p>Twitter 数据实时监控雷达</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>总帖子数</h3>
+                <div class="value">{{ stats.total_posts }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>总评论数</h3>
+                <div class="value">{{ stats.total_comments }}</div>
+            </div>
+        </div>
+
+        <div class="category-grid">
+            <div class="category-card trending">
+                <h3>🔥 热门趋势</h3>
+                <div class="count">{{ stats.trending }}</div>
+                <a href="/posts/trending" class="link">查看详情 →</a>
+            </div>
+
+            <div class="category-card need">
+                <h3>🔍 需求帖子</h3>
+                <div class="count">{{ stats.need }}</div>
+                <a href="/posts/need" class="link">查看详情 →</a>
+            </div>
+
+            <div class="category-card product">
+                <h3>🚀 产品帖子</h3>
+                <div class="count">{{ stats.product }}</div>
+                <a href="/posts/product" class="link">查看详情 →</a>
+            </div>
+
+            <div class="category-card complain">
+                <h3>😤 抱怨帖子</h3>
+                <div class="count">{{ stats.complain }}</div>
+                <a href="/posts/complain" class="link">查看详情 →</a>
+            </div>
+        </div>
+
+        <div class="last-update">
+            {% if last_crawl %}
+            最后更新: {{ last_crawl }}
+            {% else %}
+            暂无数据
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
