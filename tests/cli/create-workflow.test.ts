@@ -1,0 +1,65 @@
+import { execSync } from 'child_process';
+import fs from 'fs/promises';
+
+describe('Create-Workflow Command', () => {
+  const testOutputFile = '/tmp/test-workflow.json';
+
+  beforeEach(async () => {
+    try {
+      await fs.unlink(testOutputFile);
+    } catch {}
+  });
+
+  test('should show create-workflow help', () => {
+    const output = execSync('node dist/cli/index.js create-workflow --help', {
+      encoding: 'utf-8'
+    });
+    expect(output).toContain('create-workflow');
+    expect(output).toContain('创建自定义工作流');
+  });
+
+  test('should create workflow file', async () => {
+    const output = execSync(
+      `node dist/cli/index.js create-workflow --name test-workflow --output ${testOutputFile}`,
+      { encoding: 'utf-8' }
+    );
+    expect(output).toContain('工作流已创建');
+
+    const content = await fs.readFile(testOutputFile, 'utf-8');
+    const workflow = JSON.parse(content);
+    expect(workflow.name).toBe('test-workflow');
+    expect(workflow.version).toBe('1.0.0');
+    expect(workflow.steps).toEqual([]);
+  });
+
+  test('should create workflow with description', async () => {
+    const output = execSync(
+      `node dist/cli/index.js create-workflow --name test --description "Test workflow" --output ${testOutputFile}`,
+      { encoding: 'utf-8' }
+    );
+    expect(output).toContain('工作流已创建');
+
+    const content = await fs.readFile(testOutputFile, 'utf-8');
+    const workflow = JSON.parse(content);
+    expect(workflow.description).toBe('Test workflow');
+  });
+
+  test('should fail if file already exists', async () => {
+    // 先创建一个文件
+    await fs.writeFile(testOutputFile, '{}');
+
+    let error: any;
+    try {
+      execSync(
+        `node dist/cli/index.js create-workflow --name test --output ${testOutputFile}`,
+        { encoding: 'utf-8', stdio: 'pipe' }
+      );
+    } catch (e) {
+      error = e;
+    }
+
+    expect(error).toBeDefined();
+    const output = (error.stdout || '') + (error.stderr || '');
+    expect(output).toContain('文件已存在');
+  });
+});
