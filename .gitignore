@@ -1,5 +1,31 @@
+# Dependencies
 node_modules/
+
+# Build
 dist/
+
+# Logs
 *.log
+npm-debug.log*
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Temp files
 temp-*/
+*.tmp
+
+# Test videos
+test-*.mp4
+*.mp4
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Coverage
+coverage/
+.nyc_output/
