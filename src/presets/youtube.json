@@ -1,6 +1,40 @@
 {
   "name": "youtube",
-  "description": "YouTube 视频工作流",
+  "description": "YouTube 视频工作流 - 优化为 1080p 横屏视频",
   "version": "1.0.0",
-  "steps": []
+  "steps": [
+    {
+      "module": "trim",
+      "name": "裁剪时长",
+      "params": {
+        "duration": 600,
+        "outputFormat": "mp4"
+      }
+    },
+    {
+      "module": "crop",
+      "name": "裁剪画面为 1080p",
+      "params": {
+        "width": 1920,
+        "height": 1080,
+        "x": "center",
+        "y": "center"
+      }
+    },
+    {
+      "module": "normalize",
+      "name": "音频标准化",
+      "params": {
+        "target": "-16"
+      }
+    },
+    {
+      "module": "compress",
+      "name": "压缩视频",
+      "params": {
+        "bitrate": "8000k",
+        "format": "mp4"
+      }
+    }
+  ]
 }
