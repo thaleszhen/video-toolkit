@@ -1,7 +1,22 @@
 import { WorkflowParser, WorkflowConfig } from '../../src/engine/parser';
 import fs from 'fs/promises';
+import os from 'os';
+import path from 'path';
+
+const tempDir = path.join(os.tmpdir(), 'video-toolkit-tests');
+const testWorkflowFile = path.join(tempDir, 'test-workflow.json');
 
 describe('WorkflowParser', () => {
+  beforeAll(async () => {
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    try {
+      await fs.unlink(testWorkflowFile);
+    } catch {}
+  });
+
   test('should parse a valid workflow JSON', async () => {
     const jsonContent = JSON.stringify({
       name: 'test-workflow',
@@ -11,8 +26,8 @@ describe('WorkflowParser', () => {
       ]
     });
 
-    await fs.writeFile('/tmp/test-workflow.json', jsonContent);
-    const config = await WorkflowParser.parse('/tmp/test-workflow.json');
+    await fs.writeFile(testWorkflowFile, jsonContent);
+    const config = await WorkflowParser.parse(testWorkflowFile);
     expect(config.name).toBe('test-workflow');
     expect(config.steps).toHaveLength(1);
   });
@@ -22,7 +37,7 @@ describe('WorkflowParser', () => {
       steps: []
     });
 
-    await fs.writeFile('/tmp/test-workflow.json', jsonContent);
-    await expect(WorkflowParser.parse('/tmp/test-workflow.json')).rejects.toThrow();
+    await fs.writeFile(testWorkflowFile, jsonContent);
+    await expect(WorkflowParser.parse(testWorkflowFile)).rejects.toThrow();
   });
 });

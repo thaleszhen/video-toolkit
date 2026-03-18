@@ -2,11 +2,48 @@
 import ffmpeg from 'fluent-ffmpeg';
 import { Logger } from './logger';
 
+let ffmpegConfigured = false;
+
+function configureBinaryPaths() {
+  if (ffmpegConfigured) {
+    return;
+  }
+
+  let ffmpegPath = process.env.FFMPEG_PATH;
+  let ffprobePath = process.env.FFPROBE_PATH;
+
+  // Prefer explicit env vars, then fall back to local installer binaries.
+  if (!ffmpegPath) {
+    try {
+      const installer = require('@ffmpeg-installer/ffmpeg') as { path?: string };
+      ffmpegPath = installer.path;
+    } catch {}
+  }
+
+  if (!ffprobePath) {
+    try {
+      const installer = require('@ffprobe-installer/ffprobe') as { path?: string };
+      ffprobePath = installer.path;
+    } catch {}
+  }
+
+  if (ffmpegPath) {
+    ffmpeg.setFfmpegPath(ffmpegPath);
+  }
+
+  if (ffprobePath) {
+    ffmpeg.setFfprobePath(ffprobePath);
+  }
+
+  ffmpegConfigured = true;
+}
+
 export class FFmpegWrapper {
   private logger: Logger;
 
   constructor() {
     this.logger = new Logger('FFmpeg');
+    configureBinaryPaths();
   }
 
   async executeCommand(

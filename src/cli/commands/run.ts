@@ -3,12 +3,73 @@ import { ModuleRegistry } from '../../modules';
 import * as fs from 'fs/promises';
 import path from 'path';
 
+function coerceParamValue(value: string): any {
+  const trimmed = value.trim();
+
+  if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
+    return Number(trimmed);
+  }
+
+  if (trimmed.toLowerCase() === 'true') {
+    return true;
+  }
+
+  if (trimmed.toLowerCase() === 'false') {
+    return false;
+  }
+
+  if (trimmed.toLowerCase() === 'null') {
+    return null;
+  }
+
+  return trimmed;
+}
+
+function parseKeyValueParams(raw: string): Record<string, any> {
+  const result: Record<string, any> = {};
+  const pairs = raw.split(',').map(item => item.trim()).filter(Boolean);
+
+  if (pairs.length === 0) {
+    throw new Error('参数为空');
+  }
+
+  for (const pair of pairs) {
+    const separatorIndex = pair.indexOf('=');
+    if (separatorIndex <= 0) {
+      throw new Error(`无效参数格式: ${pair}`);
+    }
+
+    const key = pair.slice(0, separatorIndex).trim();
+    const value = pair.slice(separatorIndex + 1);
+
+    if (!key) {
+      throw new Error(`无效参数键名: ${pair}`);
+    }
+
+    result[key] = coerceParamValue(value);
+  }
+
+  return result;
+}
+
+export function parseParams(raw?: string): Record<string, any> {
+  if (!raw) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return parseKeyValueParams(raw);
+  }
+}
+
 export const runCommand = new Command('run')
   .description('运行单个模块')
   .requiredOption('-m, --module <name>', '模块名称')
   .requiredOption('-i, --input <file>', '输入文件')
   .option('-o, --output <file>', '输出文件')
-  .option('--params <json>', '模块参数（JSON 格式）')
+  .option('--params <value>', '模块参数（JSON 或 key=value,key2=value2）')
   .action(async (options) => {
     const module = ModuleRegistry.get(options.module);
     if (!module) {
@@ -31,9 +92,12 @@ export const runCommand = new Command('run')
     let params: any = {};
     if (options.params) {
       try {
-        params = JSON.parse(options.params);
-      } catch (error) {
-        console.error(`❌ 参数 JSON 解析失败`);
+        params = parseParams(options.params);
+      } catch (error: any) {
+        console.error(`❌ 参数解析失败: ${error.message}`);
+        console.log('支持格式:');
+        console.log('  1) JSON: {"duration": 60, "start": 10}');
+        console.log('  2) 键值对: duration=60,start=10');
         process.exit(1);
       }
     }
@@ -47,7 +111,10 @@ export const runCommand = new Command('run')
     console.log(`输出: ${outputFile}\n`);
 
     // 验证必需参数
-    const missingParams = module.input.required.filter(param => !params[param]);
+    const missingParams = module.input.required.filter(param => {
+      const value = params[param];
+      return value === undefined || value === null || value === '';
+    });
     if (missingParams.length > 0) {
       console.error(`❌ 缺少必需参数: ${missingParams.join(', ')}`);
       console.log(`\n模块 ${module.name} 需要以下参数:`);

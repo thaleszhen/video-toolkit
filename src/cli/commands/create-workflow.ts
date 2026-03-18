@@ -26,6 +26,9 @@ export const createWorkflowCommand = new Command('create-workflow')
       process.exit(1);
     } catch {}
 
+    // 确保输出目录存在（跨平台场景下，绝对路径目录可能尚未创建）
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+
     // 写入文件
     await fs.writeFile(outputPath, JSON.stringify(workflow, null, 2));
 

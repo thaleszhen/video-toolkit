@@ -1,9 +1,21 @@
 import { execSync } from 'child_process';
 import fs from 'fs/promises';
+import os from 'os';
+import path from 'path';
+
+const tempDir = path.join(os.tmpdir(), 'video-toolkit-tests');
+const outputPath = path.join(tempDir, 'output.mp4');
+
+function quote(filePath: string) {
+  return `"${filePath}"`;
+}
 
 describe('End-to-End Workflow Execution', () => {
   const testVideoPath = 'tests/fixtures/test-video.mp4';
-  const outputPath = '/tmp/output.mp4';
+
+  beforeAll(async () => {
+    await fs.mkdir(tempDir, { recursive: true });
+  });
 
   beforeEach(async () => {
     // 清理输出文件
@@ -61,7 +73,7 @@ describe('End-to-End Workflow Execution', () => {
   });
 
   test('should create and validate custom workflow', async () => {
-    const workflowPath = '/tmp/test-custom-workflow.json';
+    const workflowPath = path.join(tempDir, 'test-custom-workflow.json');
 
     // 清理旧文件
     try {
@@ -70,7 +82,7 @@ describe('End-to-End Workflow Execution', () => {
 
     // 创建工作流
     const createOutput = execSync(
-      `node dist/cli/index.js create-workflow --name test-custom --output ${workflowPath}`,
+      `node dist/cli/index.js create-workflow --name test-custom --output ${quote(workflowPath)}`,
       { encoding: 'utf-8' }
     );
 

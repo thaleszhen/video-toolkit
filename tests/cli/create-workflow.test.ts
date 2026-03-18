@@ -1,8 +1,19 @@
 import { execSync } from 'child_process';
 import fs from 'fs/promises';
+import os from 'os';
+import path from 'path';
+
+const tempDir = path.join(os.tmpdir(), 'video-toolkit-tests');
+const testOutputFile = path.join(tempDir, 'test-workflow.json');
+
+function quote(filePath: string) {
+  return `"${filePath}"`;
+}
 
 describe('Create-Workflow Command', () => {
-  const testOutputFile = '/tmp/test-workflow.json';
+  beforeAll(async () => {
+    await fs.mkdir(tempDir, { recursive: true });
+  });
 
   beforeEach(async () => {
     try {
@@ -20,7 +31,7 @@ describe('Create-Workflow Command', () => {
 
   test('should create workflow file', async () => {
     const output = execSync(
-      `node dist/cli/index.js create-workflow --name test-workflow --output ${testOutputFile}`,
+      `node dist/cli/index.js create-workflow --name test-workflow --output ${quote(testOutputFile)}`,
       { encoding: 'utf-8' }
     );
     expect(output).toContain('工作流已创建');
@@ -34,7 +45,7 @@ describe('Create-Workflow Command', () => {
 
   test('should create workflow with description', async () => {
     const output = execSync(
-      `node dist/cli/index.js create-workflow --name test --description "Test workflow" --output ${testOutputFile}`,
+      `node dist/cli/index.js create-workflow --name test --description "Test workflow" --output ${quote(testOutputFile)}`,
       { encoding: 'utf-8' }
     );
     expect(output).toContain('工作流已创建');
@@ -51,7 +62,7 @@ describe('Create-Workflow Command', () => {
     let error: any;
     try {
       execSync(
-        `node dist/cli/index.js create-workflow --name test --output ${testOutputFile}`,
+        `node dist/cli/index.js create-workflow --name test --output ${quote(testOutputFile)}`,
         { encoding: 'utf-8', stdio: 'pipe' }
       );
     } catch (e) {
