@@ -41,6 +41,7 @@ package-lock.mirror-lock.json
 .env
 .env.*
 !.env.example
+demand-radar/venv/
 
 # IDE / editor
 .vscode/
