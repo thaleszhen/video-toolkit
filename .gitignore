@@ -29,10 +29,10 @@ tmp/
 # Generated media outputs
 *.mp4
 !tests/fixtures/*.mp4
+samples/*
+!samples/README.md
 
 # Local smoke / troubleshooting artifacts
-smoke-input.mp4
-smoke-output.mp4
 node_modules.broken-*/
 package-lock.broken-*.json
 package-lock.mirror-lock.json

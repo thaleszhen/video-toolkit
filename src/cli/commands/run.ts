@@ -1,7 +1,9 @@
 import { Command } from 'commander';
-import { ModuleRegistry } from '../../modules';
 import * as fs from 'fs/promises';
 import path from 'path';
+import { ModuleRegistry } from '../../modules';
+import { resolveInputSource } from '../../utils/input-source';
+import { createManagedTempDir } from '../../utils/temp-dir';
 
 function coerceParamValue(value: string): any {
   const trimmed = value.trim();
@@ -27,7 +29,10 @@ function coerceParamValue(value: string): any {
 
 function parseKeyValueParams(raw: string): Record<string, any> {
   const result: Record<string, any> = {};
-  const pairs = raw.split(',').map(item => item.trim()).filter(Boolean);
+  const pairs = raw
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean);
 
   if (pairs.length === 0) {
     throw new Error('参数为空');
@@ -41,7 +46,6 @@ function parseKeyValueParams(raw: string): Record<string, any> {
 
     const key = pair.slice(0, separatorIndex).trim();
     const value = pair.slice(separatorIndex + 1);
-
     if (!key) {
       throw new Error(`无效参数键名: ${pair}`);
     }
@@ -67,10 +71,12 @@ export function parseParams(raw?: string): Record<string, any> {
 export const runCommand = new Command('run')
   .description('运行单个模块')
   .requiredOption('-m, --module <name>', '模块名称')
-  .requiredOption('-i, --input <file>', '输入文件')
+  .requiredOption('-i, --input <file>', '输入文件或 YouTube 链接')
   .option('-o, --output <file>', '输出文件')
   .option('--params <value>', '模块参数（JSON 或 key=value,key2=value2）')
-  .action(async (options) => {
+  .option('--keep-download', '保留 YouTube 下载源文件（默认自动清理）')
+  .option('--download-dir <dir>', '下载目录（设置后自动保留源文件）')
+  .action(async options => {
     const module = ModuleRegistry.get(options.module);
     if (!module) {
       console.error(`❌ 模块不存在: ${options.module}`);
@@ -80,16 +86,7 @@ export const runCommand = new Command('run')
     console.log(`\n📦 运行模块: ${module.name}`);
     console.log(`描述: ${module.description}\n`);
 
-    // 检查输入文件是否存在
-    try {
-      await fs.access(options.input);
-    } catch {
-      console.error(`❌ 输入文件不存在: ${options.input}`);
-      process.exit(1);
-    }
-
-    // 解析参数
-    let params: any = {};
+    let params: Record<string, any> = {};
     if (options.params) {
       try {
         params = parseParams(options.params);
@@ -102,51 +99,70 @@ export const runCommand = new Command('run')
       }
     }
 
-    // 确定输出文件
-    const inputFile = path.basename(options.input, path.extname(options.input));
-    const outputFile = options.output || 
-      module.output.filename.replace('{name}', inputFile) + '.' + module.output.format;
-
-    console.log(`输入: ${options.input}`);
-    console.log(`输出: ${outputFile}\n`);
-
-    // 验证必需参数
     const missingParams = module.input.required.filter(param => {
       const value = params[param];
       return value === undefined || value === null || value === '';
     });
+
     if (missingParams.length > 0) {
       console.error(`❌ 缺少必需参数: ${missingParams.join(', ')}`);
       console.log(`\n模块 ${module.name} 需要以下参数:`);
       Object.entries(module.input.params).forEach(([key, param]) => {
         if (param.required) {
-          const defaultVal = param.default !== undefined ? ` [默认: ${param.default}]` : '';
-          console.log(`  - ${key}${defaultVal}: ${param.description}`);
+          const defaultValue = param.default !== undefined ? ` [默认: ${param.default}]` : '';
+          console.log(`  - ${key}${defaultValue}: ${param.description}`);
         }
       });
       process.exit(1);
     }
 
-    // 使用默认值填充可选参数
     Object.entries(module.input.params).forEach(([key, param]) => {
       if (params[key] === undefined && param.default !== undefined) {
         params[key] = param.default;
       }
     });
 
-    // 创建执行上下文
-    const temporaryDir = await fs.mkdtemp(path.join(process.cwd(), 'temp-'));
-    const context = {
-      inputFile: options.input,
-      outputFile,
-      workingDir: process.cwd(),
-      temporaryDir,
-      log: (message: string) => console.log(`  ℹ ${message}`),
-      error: (message: string) => console.error(`  ❌ ${message}`),
-    };
+    let commandTempDir: string | undefined;
+    let resolvedInput:
+      | {
+          originalInput: string;
+          resolvedInput: string;
+          baseName: string;
+          downloaded: boolean;
+          cleanup: () => Promise<void>;
+        }
+      | undefined;
+    let moduleError: unknown;
 
     try {
-      // 执行前检查
+      const shouldKeepDownload = Boolean(options.keepDownload || options.downloadDir);
+      resolvedInput = await resolveInputSource(options.input, {
+        workingDir: process.cwd(),
+        log: message => console.log(`  ↳ ${message}`),
+        keepDownloadedSource: shouldKeepDownload,
+        downloadDir: options.downloadDir,
+      });
+
+      const outputFile =
+        options.output ||
+        `${module.output.filename.replace('{name}', resolvedInput.baseName)}.${module.output.format}`;
+
+      console.log(`输入: ${resolvedInput.originalInput}`);
+      if (resolvedInput.downloaded) {
+        console.log(`下载文件: ${resolvedInput.resolvedInput}`);
+      }
+      console.log(`输出: ${outputFile}\n`);
+
+      commandTempDir = await createManagedTempDir('run');
+      const context = {
+        inputFile: resolvedInput.resolvedInput,
+        outputFile,
+        workingDir: process.cwd(),
+        temporaryDir: commandTempDir,
+        log: (message: string) => console.log(`  ↳ ${message}`),
+        error: (message: string) => console.error(`  ❌ ${message}`),
+      };
+
       if (module.preCheck) {
         const ok = await module.preCheck(context);
         if (!ok) {
@@ -155,27 +171,29 @@ export const runCommand = new Command('run')
       }
 
       console.log('🚀 开始执行...\n');
-      
-      // 执行模块
-      const result = await module.execute(options.input, params, context);
-      
-      console.log(`\n✅ 执行成功！`);
-      console.log(`输出文件: ${result}\n`);
-
-      // 清理
+      const result = await module.execute(resolvedInput.resolvedInput, params, context);
+      console.log('\n✅ 执行成功！');
+      console.log(`输出文件: ${result}`);
+      console.log(`绝对路径: ${path.resolve(result)}\n`);
+    } catch (error) {
+      moduleError = error;
+    } finally {
       if (module.cleanup) {
         module.cleanup();
       }
-      
-      await fs.rm(temporaryDir, { recursive: true });
-    } catch (error: any) {
-      console.error(`\n❌ 执行失败: ${error.message}\n`);
-      
-      // 清理临时文件
-      try {
-        await fs.rm(temporaryDir, { recursive: true });
-      } catch {}
-      
+
+      if (commandTempDir) {
+        await fs.rm(commandTempDir, { recursive: true, force: true });
+      }
+
+      if (resolvedInput) {
+        await resolvedInput.cleanup();
+      }
+    }
+
+    if (moduleError) {
+      const message = moduleError instanceof Error ? moduleError.message : String(moduleError);
+      console.error(`\n❌ 执行失败: ${message}\n`);
       process.exit(1);
     }
   });

@@ -4,6 +4,7 @@ import { ModuleRegistry } from '../modules';
 import * as fs from 'fs/promises';
 import path from 'path';
 import { Logger } from '../utils/logger';
+import { createManagedTempDir } from '../utils/temp-dir';
 
 export interface ExecutionContext {
   inputFile: string;
@@ -29,7 +30,7 @@ export class WorkflowExecutor {
     this.logger.info(`Starting workflow: ${this.config.name}`);
     this.logger.info(`Input: ${inputFile}, Output: ${outputFile}`);
 
-    const temporaryDir = await fs.mkdtemp(path.join(process.cwd(), 'temp-'));
+    const temporaryDir = await createManagedTempDir('workflow');
     this.temporaryFiles.push(temporaryDir);
 
     let currentInput = inputFile;
