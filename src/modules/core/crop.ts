@@ -54,7 +54,7 @@ export const cropModule: VideoModule = {
     const { width, height, x = 'center', y = 'center' } = params;
     const ffmpeg = new FFmpegWrapper();
 
-    const cropParams = calculateCropPosition(x, y, width, height);
+    const cropParams = calculateCropPosition(x, y);
 
     const options = [
       '-vf', `crop=${width}:${height}:${cropParams.x}:${cropParams.y}`,
@@ -69,6 +69,44 @@ export const cropModule: VideoModule = {
   },
 };
 
-function calculateCropPosition(x: string, y: string, width: number, height: number) {
-  return { x: 0, y: 0 };
+function isNumericPosition(value: string | number): boolean {
+  return typeof value === 'number' || /^-?\d+(\.\d+)?$/.test(String(value).trim());
+}
+
+function toCropExpression(value: string | number, axis: 'x' | 'y'): string {
+  if (isNumericPosition(value)) {
+    return String(value);
+  }
+
+  const normalized = String(value).trim().toLowerCase();
+  if (axis === 'x') {
+    if (normalized === 'center') {
+      return '(in_w-out_w)/2';
+    }
+    if (normalized === 'left' || normalized === 'start') {
+      return '0';
+    }
+    if (normalized === 'right' || normalized === 'end') {
+      return 'in_w-out_w';
+    }
+  }
+
+  if (normalized === 'center') {
+    return '(in_h-out_h)/2';
+  }
+  if (normalized === 'top' || normalized === 'start') {
+    return '0';
+  }
+  if (normalized === 'bottom' || normalized === 'end') {
+    return 'in_h-out_h';
+  }
+
+  return String(value);
+}
+
+export function calculateCropPosition(x: string | number, y: string | number) {
+  return {
+    x: toCropExpression(x, 'x'),
+    y: toCropExpression(y, 'y'),
+  };
 }

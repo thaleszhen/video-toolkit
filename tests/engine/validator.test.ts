@@ -53,4 +53,42 @@ describe('WorkflowValidator', () => {
     expect(result.valid).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
   });
+
+  test('should treat zero as a valid required parameter value', async () => {
+    const testModule: VideoModule = {
+      name: 'offset-module',
+      description: 'Offset module',
+      version: '1.0.0',
+      category: 'core',
+      input: {
+        accepts: ['mp4'],
+        required: ['start'],
+        optional: [],
+        params: {
+          start: {
+            type: 'number',
+            description: 'Start offset',
+            required: true,
+          },
+        }
+      },
+      output: {
+        format: 'mp4',
+        filename: 'output.mp4'
+      },
+      execute: async () => 'output.mp4'
+    };
+    ModuleRegistry.register(testModule);
+
+    const config = {
+      name: 'test-workflow',
+      steps: [
+        { module: 'offset-module', params: { start: 0 } }
+      ]
+    };
+
+    const result = await WorkflowValidator.validate(config);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
 });

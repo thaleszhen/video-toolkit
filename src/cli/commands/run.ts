@@ -122,6 +122,11 @@ export const runCommand = new Command('run')
       }
     });
 
+    if (module.validate && !module.validate(params)) {
+      console.error(`❌ 模块参数校验失败: ${module.name}`);
+      process.exit(1);
+    }
+
     let commandTempDir: string | undefined;
     let resolvedInput:
       | {

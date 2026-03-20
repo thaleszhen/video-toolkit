@@ -12,7 +12,8 @@ const YOUTUBE_HOSTS = new Set([
   'www.youtu.be',
 ]);
 
-const VIDEO_EXTENSIONS = new Set(['.mp4', '.mov', '.mkv', '.webm', '.m4v']);
+export const SUPPORTED_VIDEO_EXTENSIONS = ['.mp4', '.mov', '.mkv', '.webm', '.m4v'];
+const VIDEO_EXTENSIONS = new Set<string>(SUPPORTED_VIDEO_EXTENSIONS);
 
 export interface ResolveInputSourceOptions {
   workingDir?: string;
@@ -94,6 +95,10 @@ export function sanitizeFileBaseName(raw: string): string {
     .replace(/^-|-$/g, '');
 
   return sanitized || 'video-input';
+}
+
+export function isSupportedVideoFile(filePath: string): boolean {
+  return VIDEO_EXTENSIONS.has(path.extname(filePath).toLowerCase());
 }
 
 async function ensureLocalInputExists(input: string): Promise<void> {

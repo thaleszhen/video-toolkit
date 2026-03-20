@@ -42,8 +42,10 @@ export class WorkflowValidator {
       return errors;
     }
 
+    const mergedParams = this.applyDefaults(step.params || {}, module.input.params);
+
     for (const requiredParam of module.input.required) {
-      if (!step.params[requiredParam]) {
+      if (!this.hasValue(mergedParams[requiredParam])) {
         errors.push({
           step: index,
           module: step.module,
@@ -52,6 +54,33 @@ export class WorkflowValidator {
       }
     }
 
+    if (errors.length === 0 && module.validate && !module.validate(mergedParams)) {
+      errors.push({
+        step: index,
+        module: step.module,
+        error: 'Module parameter validation failed',
+      });
+    }
+
     return errors;
+  }
+
+  private static hasValue(value: unknown): boolean {
+    return value !== undefined && value !== null && value !== '';
+  }
+
+  private static applyDefaults(
+    params: Record<string, any>,
+    definitions: Record<string, { default?: any }>
+  ): Record<string, any> {
+    const merged = { ...params };
+
+    for (const [key, definition] of Object.entries(definitions)) {
+      if (merged[key] === undefined && definition.default !== undefined) {
+        merged[key] = definition.default;
+      }
+    }
+
+    return merged;
   }
 }

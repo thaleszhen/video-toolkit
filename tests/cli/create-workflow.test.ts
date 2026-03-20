@@ -55,6 +55,20 @@ describe('Create-Workflow Command', () => {
     expect(workflow.description).toBe('Test workflow');
   });
 
+  test('should create workflow from preset', async () => {
+    const output = execSync(
+      `node dist/cli/index.js create-workflow --name custom-youtube --from-preset youtube --output ${quote(testOutputFile)}`,
+      { encoding: 'utf-8' }
+    );
+    expect(output).toContain('工作流已创建');
+    expect(output).toContain('--config');
+
+    const content = await fs.readFile(testOutputFile, 'utf-8');
+    const workflow = JSON.parse(content);
+    expect(workflow.name).toBe('custom-youtube');
+    expect(workflow.steps.length).toBeGreaterThan(0);
+  });
+
   test('should fail if file already exists', async () => {
     // 先创建一个文件
     await fs.writeFile(testOutputFile, '{}');

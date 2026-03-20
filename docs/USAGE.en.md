@@ -5,9 +5,11 @@ This guide explains how to run and use the project from your local repository.
 ## 1. What You Can Do
 
 - Process videos with preset workflows (`youtube`, `tiktok`)
+- Run a custom workflow JSON via `--config`
+- Batch-process a directory via `--input-dir` / `--output-dir`
 - Run a single module (`trim`, `crop`, `compress`, `watermark`, `normalize`)
 - Use a local video path or a YouTube URL as input
-- Create a custom workflow JSON template
+- Create a custom workflow JSON template, optionally from a preset
 
 ## 2. Requirements
 
@@ -60,13 +62,25 @@ node dist/cli/index.js workflow youtube --input .\input.mp4 --output .\youtube-o
 node dist/cli/index.js workflow youtube --input "https://youtu.be/u2ah9tWTkmk" --output .\youtube-out.mp4
 ```
 
-### 5.3 Run one module with a local file
+### 5.3 Run a custom workflow file
+
+```bash
+node dist/cli/index.js workflow --config .\my-workflow.json --input .\input.mp4 --output .\custom-out.mp4
+```
+
+### 5.4 Batch-process a directory
+
+```bash
+node dist/cli/index.js workflow youtube --input-dir .\incoming --output-dir .\out
+```
+
+### 5.5 Run one module with a local file
 
 ```bash
 node dist/cli/index.js run --module trim --input .\input.mp4 --output .\trim-out.mp4 --params duration=5,start=0
 ```
 
-### 5.4 Run one module with a YouTube URL (one command)
+### 5.6 Run one module with a YouTube URL (one command)
 
 ```bash
 node dist/cli/index.js run --module trim --input "https://youtu.be/u2ah9tWTkmk" --output .\trim-out.mp4 --params duration=5,start=0
@@ -82,12 +96,19 @@ node dist/cli/index.js workflow <name> --input <file-or-url> --output <file>
 
 Options:
 - `<name>`: `youtube` or `tiktok`
+- `--config <file>`: run a custom workflow JSON file
+- `--input-dir <dir>`: process every supported video in a directory
+- `--output-dir <dir>`: output directory for batch processing
 - `--dry-run`: validate workflow without executing
 
 Example:
 
 ```bash
 node dist/cli/index.js workflow tiktok --input .\input.mp4 --output .\tiktok-out.mp4 --dry-run
+```
+
+```bash
+node dist/cli/index.js workflow --config .\my-workflow.json --input-dir .\incoming --output-dir .\out --dry-run
 ```
 
 ### 6.2 Run single module
@@ -119,6 +140,7 @@ node dist/cli/index.js module info trim
 
 ```bash
 node dist/cli/index.js create-workflow --name my-workflow --output .\my-workflow.json
+node dist/cli/index.js create-workflow --name branded-youtube --from-preset youtube --output .\branded-youtube.json
 ```
 
 ## 7. Built-in Modules
@@ -165,6 +187,8 @@ node dist/cli/index.js run --module normalize --input .\input.mp4 --output .\nor
 
 - Local file input:
   - Must exist, otherwise command fails.
+- Directory input:
+  - Only supported video files in the top-level directory are processed.
 - YouTube URL input:
   - Automatically downloaded to a temporary folder.
   - Temporary source files are auto-cleaned after execution.
@@ -187,4 +211,3 @@ node dist/cli/index.js run --module normalize --input .\input.mp4 --output .\nor
 ```powershell
 Get-Item .\out.mp4
 ```
-
